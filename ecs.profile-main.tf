@@ -7,7 +7,7 @@
  | -- 
 */
 resource aws_iam_role ecs-tasks {
-    name = "task-role-${ var.in_ecosystem }-${ var.in_timestamp }"
+    name = "task-role-${ var.in_ecosystem_name }-${ var.in_tag_timestamp }"
     assume_role_policy = file( "${path.module}/ecs.profile-role.json" )
 }
 
@@ -19,7 +19,7 @@ resource aws_iam_role ecs-tasks {
  | --
 */
 resource aws_iam_policy ecs-policies {
-    name = "task-policy-${ var.in_ecosystem }-${ var.in_timestamp }"
+    name = "task-policy-${ var.in_ecosystem_name }-${ var.in_tag_timestamp }"
     policy = var.in_policy_stmts
 }
 
