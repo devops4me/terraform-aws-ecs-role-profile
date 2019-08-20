@@ -1,29 +1,24 @@
 
-#### Given an input string of IAM policy statements (usually rendered from json formatted policy statements) this terraform module returns an ec2 instance profile that can be attached to an aws_instance thus giving it a role containing all the necessary permissions.
+#### Given an input string of IAM policy statements that give or revoke access privileges this terraform module delivers a role profile that can be fed to an ECS cluster thus making that ECS cluster inherit the aforementioned permissions.
 
 
-# ec2 instance role profile | iam policy statements
+# ecs task role profile | iam policy statements
 
-**We want our ec2 instances to inherit access to AWS resources like S3 buckets, ECS repositories, CloudFront and AWS ElasticSearch. We use roles to avoid explicitly passing IAM credentials into ec2 instances.**
+**We need our ECS cluster tasks to inherit access to AWS resources like S3 buckets, ECS repositories, CloudFront and AWS ElasticSearch.
 
-Pass in chunk of AWS (json formatted) policy statements in the variable **`in_policy_stmts`** and reap the **`out_instance_profile_id`** that can be fed into the **`iam_instance_profile`** property of the **`aws_instance`** resource.
+We pass in a chunk of AWS (json formatted) policy statements in the variable **`in_policy_stmts`** and reap the **`out_ecs_tasks_role_arn`** that can be fed into the **`task_role_arn`** property of the **`aws_ecs_task_definition`** resource.
 
 ## Usage
 
 ``` hcl
 module ec2-instance-profile
 {
-    source = "github.com/devops4me/terraform-aws-ec2-instance-profile"
+    source = "github.com/devops4me/terraform-aws-ecs-role-profile"
 
-    in_policy_stmts    = "${ data.template_file.iam_policy_stmts.rendered }"
+    in_policy_stmts    = data.template_file.ecs_policy_stmts.rendered
 
-    in_ecosystem_name  = "${local.ecosystem_id}"
-    in_tag_timestamp   = "${ module.resource-tags.out_tag_timestamp }"
-    in_tag_description = "${ module.resource-tags.out_tag_description }"
-}
-module resource-tags
-{
-    source = "github.com/devops4me/terraform-aws-resource-tags"
+    in_ecosystem_name  = var.in_ecosystem_name
+    in_tag_timestamp   = var.in_timestamp
 }
 ```
 
@@ -70,25 +65,4 @@ Now create this JSON file in the path called **ec2.profile-policy-stmts.json**.
 	}
     ]
 }
-```
-
-Create the ec2 instance and then login to check that it does indeed have access to S3 and CloudFront distributions.
-
-
-```yaml
-#cloud-config
-
-ssh_authorized_keys:
-  - "ssh-rsa xxxxx-abcde public key"
-
-package_update: true
-
-packages:
- - python3-pip
- - groff
-
-
-runcmd:
-  - [ sh, -c, "sudo pip3 install --upgrade awscli && pip3 --version && aws --version" ]
-  - [ sh, -c, "aws s3 ls > /home/ubuntu/s3-acess-verification.txt" ]
 ```

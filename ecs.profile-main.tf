@@ -1,44 +1,37 @@
 
 /*
- | -- This ec2 role is effectively a bucket for the policies and is specifying
- | -- that an ec2 instance (as opposed to a RDS database or EKS cluster) is the
- | -- vessel that will gain access as defined by the policies passed in through
- | -- the in_policy_stmts variable.
  | --
+ | -- This ECS task role is effectively a bucket for the policies and is specifying
+ | -- that ECS tasks are the vessel that will gain (or be denied) the access defined
+ | -- in the file-based JSON policy statement.
+ | -- 
 */
-resource aws_iam_role ec2_instance_role {
-    name               = "ec2-role-${ var.in_ecosystem_name }-${ var.in_tag_timestamp }"
-    assume_role_policy = file( "${path.module}/ec2.profile-role.json" )
+resource aws_iam_role ecs-tasks {
+    name = "task-role-${ var.in_ecosystem }-${ var.in_timestamp }"
+    assume_role_policy = file( "${path.module}/ecs.profile-role.json" )
 }
 
 
 /*
- | -- This resource unites the incoming (json formatted) policy statements with
- | -- the IAM ec2 role.
  | --
- | -- The incoming policy statements should be sent in JSON format and should be treated
- | -- as sensitive and not put under version control.
- | --
- | -- If a hacker knows exactly what policies a piece of infrastructure has, they
- | -- get a head start by knowing which infrastructure to focus on compromising.
+ | -- Wrap up the policy statements inside the specified JSON file to form a policy
+ | -- declaration that will be attached by hte policy attachment resource.
  | --
 */
-resource aws_iam_role_policy ec2_instance_policy {
-    name   = "ec2-policy-${ var.in_ecosystem_name }-${ var.in_tag_timestamp }"
-    role   = aws_iam_role.ec2_instance_role.id
+resource aws_iam_policy ecs-policies {
+    name = "task-policy-${ var.in_ecosystem }-${ var.in_timestamp }"
     policy = var.in_policy_stmts
 }
 
 
 /*
- | -- This is the instance profile whose ID is given to whichever aws_instance
- | -- resource that needs to gain access as per the above policy statements.
  | --
- | -- The output variable [out_instance_profile_id] uses this resource.
- | --    ${ aws_iam_instance_profile.ec2_instance_profile.id }
+ | -- Attach together and tie up the IAM role and the IAM policies in a
+ | -- neat little bundle for use by the ECS cluster.
  | --
 */
-resource aws_iam_instance_profile ec2_instance_profile {
-    name = "ec2-profile-${ var.in_ecosystem_name }-${ var.in_tag_timestamp }"
-    role = aws_iam_role.ec2_instance_role.name
+resource aws_iam_role_policy_attachment ecs-task-attachment {
+    role = aws_iam_role.ecs-tasks.name
+    policy_arn = aws_iam_policy.ecs-policies.arn
 }
+
