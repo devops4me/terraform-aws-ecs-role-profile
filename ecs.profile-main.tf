@@ -20,7 +20,7 @@ resource aws_iam_role ecs-tasks {
 */
 resource aws_iam_policy ecs-policies {
     name = "task-policy-${ var.in_ecosystem_name }-${ var.in_tag_timestamp }"
-    policy = var.in_policy_stmts
+    policy = var.in_ecs_policy_stmts
 }
 
 

@@ -3,11 +3,11 @@
 ### ec2 instance profile [mandatory] variables ###
 ### ########################################## ###
 
-### ############### ###
-### in_policy_stmts ###
-### ############### ###
+### ################### ###
+### in_ecs_policy_stmts ###
+### ################### ###
 
-variable in_policy_stmts {
+variable in_ecs_policy_stmts {
 
     description = "The Policy statements defining the AWS resource access the ec2 instances will enjoy."
 }
